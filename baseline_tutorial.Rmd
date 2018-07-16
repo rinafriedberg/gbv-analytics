@@ -1,7 +1,7 @@
 ---
 title: "Baseline Tutorial"
 author: Rina Friedberg, Evan Rosenman, Mike Baiocchi
-output: html_document
+output: pdf_document
 ---
 
 Here, we detail the data cleaning and baseline evaluation process in R. A basic working knowledge of R will be helpful, albeit not strictly necessary, for following along. We have provided a sample dataset, randomly generated so that the response to each question occurs with probability equal to the frequency in the original dataset. Hence it contains no private information and any signal we may find therein is due to random chance. There are short exercises sprinkled throughout to help beginners explore the dataset.
