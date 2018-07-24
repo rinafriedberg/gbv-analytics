@@ -157,8 +157,8 @@ Consider another girl, who was also raped once by her boyfriend, and interpreted
 # We create a vector called "forced", which gives the number of times each individual in the 
 # study reported a forced sexual experience 
 
-forced<- sapply(1:n, function(i){
-  row<- forced_df[i,]
+forced <- sapply(1:n, function(i){
+  row <- forced_df[i,]
   # Recall we cast all "NA" and refused answers to be negative.
   # So first we check if there are any non-negative entries in the row.
   # If there are only negative entries, there is no useful information in the row. 
@@ -173,30 +173,59 @@ forced<- sapply(1:n, function(i){
   numAggregated<- sum(row[!(colnames(row) %in% c("timesforcednum", "timesforcedlife")) & row>0])
   return(max(numAggregated, row$timesforcedlife, row$timesforcedlifenum))
 })
+df$forced <- forced
 ```
 
 Now we summarize the data. We include both Wald confidence intervals, and useful histograms. First, we recommend thinking about why we might want to include these confidence intervals. Why is that kind of analysis helpful, given our goal of checking balance between treatment and control schools? What do you think might happen? 
 
 ```{r, comment = NA}
 # Histograms
-hist(forced[forced>=0], main = "Prevalence of Rape among all Girls", xlab = "Number of times")
-hist(forced[forced>0], main = "Girls who were Raped at least Once", xlab = "Number of times")
+hist(forced[forced>=0], main = "Prevalence of Sexual Assault among all Girls", xlab = "Number of times")
+hist(forced[forced>0], main = "Girls who were Sexually Assaulted at least Once", xlab = "Number of times")
 
 # Report Numbers
 prop_forced <- sum(forced>0)/n
-cat("We observed a frequency of", prop_forced, "girls who were raped at least once.")
+cat("We observed a frequency of", prop_forced, "girls who were sexually assaulted at least once.")
 
 lower_forced <- prop_forced - 1.96*sqrt(prop_forced*(1-prop_forced)/n)
 upper_forced<- prop_forced+ 1.96*sqrt(prop_forced*(1-prop_forced)/n)
 cat("The Wald Interval for this proportion is (",lower_forced, ",", upper_forced, ")")
 
 prop_once <- sum(forced==1)/sum(forced>0)
-cat("Among all girls who were raped,", prop_once, "were raped once.")
+cat("Among all girls who were sexually assaulted,", prop_once, "were sexually assaulted once.")
 ```
 
 \begin{itemize}
-\item Exercise: can you find the Wald intervals for prevalence of rape, for just treatment schools? Just control schools?
+\item Exercise: can you find the Wald intervals for prevalence of sexual assault, for just treatment schools? Just control schools?
 \end{itemize}
+
+### Bootstrap Confidence Intervals
+
+Instead of Wald Intervals, we can use the bootstrap to more robustly estimate the distribution of our data. To generate bootstrapped datasets, we take a bootstrap sample within each cluster, here each unique school. Then, we check how many girls in that sample reported any non-NA response (the second element returned), and how many were sexually assaulted at least once (the first element returned). Repeating this process 1000 times gives us an estimate of the spread of our data. 
+
+```{r, comment = NA}
+B = 1000
+results = sapply(1:B, function(b){
+  ids = unique(df$schoolid)
+  numbers = sapply(ids, FUN=function(id){
+    # isolate school
+    cluster = df[df$schoolid==id,]
+    
+    # sample with replacement from the school
+    n.id = nrow(cluster)
+    f = cluster$forced[sample(n.id,replace=TRUE)]
+    
+    # return number of girls who were forced, and total girls who reported non-NA answers
+    return(c(sum(f[!is.na(f) & f > 0]), length(f[!is.na(f)])))
+  })
+  sum(numbers[1,])/sum(numbers[2,])
+})
+
+lower_boot = quantile(results,prob=0.025)
+upper_boot = quantile(results,prob=0.975)
+cat("We observed a proportion of", prop_forced, "girls who were sexually assaulted.")
+cat("The 95% bootstrap interval for this proportion is (", lower_boot, ",", upper_boot, ")")
+```
 
 ### Testing Treatment/Control Balance of Prior GBV
 
@@ -221,12 +250,12 @@ cat("In the treatment group, we see a proportion ", prop_treat_forced, "(",lower
 Last, we can look at a layered histogram to visually check that the distributions of prior GBV are comparable in treatment and control groups.
 
 ```{r}
-# Prevalence of rape among all girls (stratified)
+# Prevalence of sexual assault among all girls (stratified)
 forced_trt <- forced[treat.rows] # Isolate treatment girls
 forced_control<- forced[control.rows] # Isolate control girls
 
 # This creates a nice histogram with some transparent colors. 
-hist(forced_trt[forced_trt>=0], main = "Prevalence of Rape among all Girls", xlab = "Number of rapes", col=rgb(1,0,0,0.5))
+hist(forced_trt[forced_trt>=0], main = "Prevalence of Sexual Assault among all Girls", xlab = "Number of rapes", col=rgb(1,0,0,0.5))
 hist(forced_control[forced_control>=0], add=T, col=rgb(0,0,1,0.5))
 legend("topright", c("Treatment", "Control"), col=c(rgb(1,0,0,0.5), rgb(0,0,1,0.5)),lwd=10)
 ```
