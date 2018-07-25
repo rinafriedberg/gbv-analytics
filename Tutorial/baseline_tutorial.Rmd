@@ -47,7 +47,6 @@ control.rows<- which(df$assignment == 0)
 num.trt<- length(treat.rows)
 num.control<- length(control.rows)
 cat("We assigned", num.trt, "girls to treatment and", num.control, "girls to control.")
-
 ```
 
 \begin{itemize}
@@ -116,9 +115,9 @@ In our methods paper, we discuss the difficulty of aggregating survey informatio
 We start by isolating the relevant survey answers.
 
 ```{r, comment = NA}
-forced_cols <- c(35:38,47:55) 
-colnames(df)[forced_cols] # Examine the chosen columns 
-forced_df <- df[,forced_cols] # Isolate Relevant columns
+forced_cols <- c(35:43, 48:59)
+forced_df <- df[,forced_cols] # Isolate Relevant data
+colnames(forced_df)
 ```
 
 ### Clean relevant data
@@ -136,7 +135,7 @@ One, it's easy to see if we've made a mistkae, since the number of times somethi
 Two, we can preserve information by keeping refusal, did not know, and NA separate. 
 Moreover, when we calculate means, it is easy to isolate only non-negative values.
 
-```{r}
+```{r, warning = FALSE}
 forced_df[is.na(forced_df)] <- -999 # Missing values 
 forced_df[forced_df == 999] <- -999 # N/A
 forced_df[forced_df == 100] <- -999 # N/A
@@ -154,6 +153,9 @@ Consider another girl, who was also raped once by her boyfriend, and interpreted
 
 
 ```{r}
+# Isolate columns with individual perpetrator counts 
+perpcounts = 62:65
+
 # We create a vector called "forced", which gives the number of times each individual in the 
 # study reported a forced sexual experience 
 
@@ -165,13 +167,16 @@ forced <- sapply(1:n, function(i){
   if(length(row>0) == 0){
     return(-99)  
   }
+  # First, we count the number of times a girl listed by each perpetrator. 
+   numreports = sum(df[i,perpcounts], na.rm = TRUE)
+  
   # As discussed at length above and in our papers, we assume that each report in columns physicalforced through forcedhivtest is a separate report.
   # This is backed up by how many girls reported rapes in one column, and then 0 for timesforcedlife, despite reporting an instance of GBV.
   # So we assume the number of times a girl has been forced is max(timesforcedlifenum, sum over previous row).
   
   # This line sums up all columns other than the two listed, and then compares to the others.
   numAggregated<- sum(row[!(colnames(row) %in% c("timesforcednum", "timesforcedlife")) & row>0])
-  return(max(numAggregated, row$timesforcedlife, row$timesforcedlifenum))
+  return(max(numAggregated, numreports, row$timesforcedlife, row$timesforcedlifenum))
 })
 df$forced <- forced
 ```
@@ -180,8 +185,8 @@ Now we summarize the data. We include both Wald confidence intervals, and useful
 
 ```{r, comment = NA}
 # Histograms
-hist(forced[forced>=0], main = "Prevalence of Sexual Assault among all Girls", xlab = "Number of times")
-hist(forced[forced>0], main = "Girls who were Sexually Assaulted at least Once", xlab = "Number of times")
+hist(forced[forced>=0], main = "Prevalence of Rape among all Girls", xlab = "Number of times")
+hist(forced[forced>0], main = "Girls who were Raped at least Once", xlab = "Number of times")
 
 # Report Numbers
 prop_forced <- sum(forced>0)/n
@@ -192,11 +197,11 @@ upper_forced<- prop_forced+ 1.96*sqrt(prop_forced*(1-prop_forced)/n)
 cat("The Wald Interval for this proportion is (",lower_forced, ",", upper_forced, ")")
 
 prop_once <- sum(forced==1)/sum(forced>0)
-cat("Among all girls who were sexually assaulted,", prop_once, "were sexually assaulted once.")
+cat("Among all girls who were raped,", prop_once, "were raped once.")
 ```
 
 \begin{itemize}
-\item Exercise: can you find the Wald intervals for prevalence of sexual assault, for just treatment schools? Just control schools?
+\item Exercise: can you find the Wald intervals for prevalence of rape, for just treatment schools? Just control schools?
 \end{itemize}
 
 ### Bootstrap Confidence Intervals
@@ -223,7 +228,7 @@ results = sapply(1:B, function(b){
 
 lower_boot = quantile(results,prob=0.025)
 upper_boot = quantile(results,prob=0.975)
-cat("We observed a proportion of", prop_forced, "girls who were sexually assaulted.")
+cat("We observed a proportion of", prop_forced, "girls who were raped.")
 cat("The 95% bootstrap interval for this proportion is (", lower_boot, ",", upper_boot, ")")
 ```
 
@@ -250,12 +255,12 @@ cat("In the treatment group, we see a proportion ", prop_treat_forced, "(",lower
 Last, we can look at a layered histogram to visually check that the distributions of prior GBV are comparable in treatment and control groups.
 
 ```{r}
-# Prevalence of sexual assault among all girls (stratified)
+# Prevalence of rape among all girls (stratified)
 forced_trt <- forced[treat.rows] # Isolate treatment girls
 forced_control<- forced[control.rows] # Isolate control girls
 
 # This creates a nice histogram with some transparent colors. 
-hist(forced_trt[forced_trt>=0], main = "Prevalence of Sexual Assault among all Girls", xlab = "Number of rapes", col=rgb(1,0,0,0.5))
+hist(forced_trt[forced_trt>=0], main = "Prevalence of Rape among all Girls", xlab = "Number of rapes", col=rgb(1,0,0,0.5))
 hist(forced_control[forced_control>=0], add=T, col=rgb(0,0,1,0.5))
 legend("topright", c("Treatment", "Control"), col=c(rgb(1,0,0,0.5), rgb(0,0,1,0.5)),lwd=10)
 ```
@@ -302,10 +307,10 @@ Our policy is to count a girl as having been raped if any of her responses indic
 In the following code, we pull those records that have conflicting survey responses. 
 
 ```{r}
-# get the column names for the individual reports of sexual assault
+# get the column names for the individual reports of rape
 reports <- which(names(df) %in% c("physicalforced", "threatforced", "othersexforced", "forcedbynotbf"))
 
-# get the column names for the aggregate reports of sexual assault
+# get the column names for the aggregate reports of rape
 times <- which(names(df) %in% c("timesforcedlife", "timesforcedlifenum"))
 
 # look at any times that there are conflicts between the reports
@@ -323,8 +328,6 @@ contradictions <- df[contradictionRows,]
 print(paste("There are", sum(contradictionRows), "records with contradictory responses and", 
             nrow(nonContradictions), "records with internally consistent responses."))
 ```
-
-In our sample dataset, we have 15 conflicting reports and 97 non-conflicting reports.
 
 One way to statistically justify our adjudication procedure is to make use of the model we fit in the last section. The basic idea: if the girls with conflicting reports are more similar to girls with non-conflicting rape reports, and less similar to non-victims, that bolsters our case that they should be classified as victims. 
 
@@ -346,10 +349,10 @@ mean(predict(logistic.fit.no.contradictions, newdata = df[forced == 0,],
              type = "response"), na.rm = TRUE)
 
 # if we see separation in these numbers, it provides a good justification to 
-# simply include all rows with evidence of sexual assault 
+# simply include all rows with evidence of rape 
 ```
 
-We get a mean prediction of 29.1% probability for the contradicting rows, 32.5% for the non-contradicting rows, and 23.9% for the non-victims. Using real data, we would expect the “gap” to actually be somewhat larger. 
+We get a mean prediction of 41.3% probability for the contradicting rows, 37.4% for the non-contradicting rows, and 31.5% for the non-victims. Using real data, we would expect the “gap” to actually be somewhat larger. 
 
 ## School Prediction
 
