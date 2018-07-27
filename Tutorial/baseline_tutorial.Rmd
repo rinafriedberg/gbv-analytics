@@ -1,7 +1,9 @@
 ---
 title: "Baseline Tutorial"
-author: Rina Friedberg, Evan Rosenman, Mike Baiocchi
-output: pdf_document
+author: "Rina Friedberg, Evan Rosenman, Mike Baiocchi"
+output:
+  html_document:
+    df_print: paged
 ---
 
 Here, we detail the data cleaning and baseline evaluation process in R. A basic working knowledge of R will be helpful, albeit not strictly necessary, for following along. We have provided a sample dataset, randomly generated so that the response to each question occurs with probability equal to the frequency in the original dataset. Hence it contains no private information and any signal we may find therein is due to random chance. There are short exercises sprinkled throughout to help beginners explore the dataset.
@@ -34,7 +36,7 @@ The "ifelse" command works as follows: ifelse(statement, result if True, result 
 Note df\$treatment adds a column called "treatment" since none exists yet; if it did, df\$treatment would replace it by this new column.
 We will let treatment = 0 denote control, and treatment = 1 denote intervention. 
 
-```{r}
+```{r, comment = NA}
 control<- 1:2
 trt<- 3:4
 df$assignment <- sapply(df$schoolid, function(id){ifelse(id%in%trt,1,0)})
@@ -115,7 +117,7 @@ In our methods paper, we discuss the difficulty of aggregating survey informatio
 We start by isolating the relevant survey answers.
 
 ```{r, comment = NA}
-forced_cols <- c(35:43, 48:59)
+forced_cols <- c(35, 36, 38, 40:43, 48:59)
 forced_df <- df[,forced_cols] # Isolate Relevant data
 colnames(forced_df)
 ```
@@ -190,7 +192,7 @@ hist(forced[forced>0], main = "Girls who were Raped at least Once", xlab = "Numb
 
 # Report Numbers
 prop_forced <- sum(forced>0)/n
-cat("We observed a frequency of", prop_forced, "girls who were sexually assaulted at least once.")
+cat("We observed a frequency of", prop_forced, "girls who were raped at least once.")
 
 lower_forced <- prop_forced - 1.96*sqrt(prop_forced*(1-prop_forced)/n)
 upper_forced<- prop_forced+ 1.96*sqrt(prop_forced*(1-prop_forced)/n)
