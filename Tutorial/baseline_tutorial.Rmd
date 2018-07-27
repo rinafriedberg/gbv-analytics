@@ -2,6 +2,7 @@
 title: "Baseline Tutorial"
 author: "Rina Friedberg, Evan Rosenman, Mike Baiocchi"
 output:
+  pdf_document: default
   html_document:
     df_print: paged
 ---
