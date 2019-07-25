@@ -1,4 +1,4 @@
 # gbv-analytics
 This repository contains tutorials and example code for baseline analysis of a cluster-randomized trial, which evaluates the impact of a gender-based violence prevention program.
 
-An R Markdown file in the Tutorial folder walks through the basic data analysis, including generated datasets (with no private or real information) so that users can follow along and explore on their own. Draft versions of the baseline data analysis paper and a more detailed statistical methodology paper can be found in the Papers folder; please note that we include these to clarify our methods, and that they are still working drafts! 
+An R Markdown file in the Tutorial folder walks through the basic data analysis, including generated datasets (with no private or real information) so that users can follow along and explore on their own. The baseline analysis paper can be found at https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0213359. A link for the statistical details paper, to appear in Violence Against Women, will be added shortly! 
