@@ -3,4 +3,4 @@ This repository contains tutorials detailing quantitative methods for gender-bas
 
 The folder Spatial_Statistics contains a tutorial for pulling and analyzing GPS data to predict neighborhood safety, as well as code that generates a dummy dataset of survey responses. This again allows users to follow along, while protecting the privacy of survey participants. 
 
-The baseline analysis papers can be found at https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0213359 and https://journals.sagepub.com/doi/10.1177/1077801219886380. The spatial statistics paper is currently under review, and the authors would be happy to share the results upon request. 
+The baseline analysis papers can be found at https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0213359 and https://journals.sagepub.com/doi/10.1177/1077801219886380. We would be happy to share a working draft of the paper describing the spatial statistics methods and results upon request. 
